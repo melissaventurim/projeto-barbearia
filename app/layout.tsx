@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "BladeApp",
-  description: "Projeto de prática profissional em análise e desenvolvimento de sistemas",
+  description: "Agendamento online de barbearia",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
