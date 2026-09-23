@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "better-auth": "^1.7.5",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -23,9 +24,14 @@
     "eslint-config-next": "16.3.5",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "allowScripts": {
-    "unrs-resolver@1.12.2": true
+    "unrs-resolver@1.12.2": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "esbuild@0.28.2": true
   }
 }
