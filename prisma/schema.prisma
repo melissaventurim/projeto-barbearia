@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  BARBER
+  CLIENT
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  role   Role    @default(CLIENT)
+  phone  String?
+  active Boolean @default(true)
+
+  sessions       Session[]
+  accounts       Account[]
+  availabilities Availability[]
+  appointments   Booking[]      @relation("BarberBookings")
+  bookings       Booking[]      @relation("ClientBookings")
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@map("verification")
+}
+
+model Service {
+  id            String    @id @default(cuid())
+  name          String
+  priceInCents  Int
+  durationInMin Int
+  active        Boolean   @default(true)
+  bookings      Booking[]
+
+  @@map("service")
+}
+
+model Availability {
+  id       String   @id @default(cuid())
+  barberId String
+  barber   User     @relation(fields: [barberId], references: [id])
+  startsAt DateTime
+  endsAt   DateTime
+
+  @@index([barberId, startsAt])
+  @@map("availability")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  serviceId   String
+  service     Service       @relation(fields: [serviceId], references: [id])
+  barberId    String
+  barber      User          @relation("BarberBookings", fields: [barberId], references: [id])
+  clientId    String?
+  client      User?         @relation("ClientBookings", fields: [clientId], references: [id])
+  clientName  String
+  clientPhone String
+  startsAt    DateTime
+  endsAt      DateTime
+  status      BookingStatus @default(CONFIRMED)
+  codeHash    String
+  createdAt   DateTime      @default(now())
+
+  @@index([barberId, startsAt])
+  @@map("booking")
+}
