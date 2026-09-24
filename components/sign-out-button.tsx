@@ -14,7 +14,7 @@ export function SignOutButton() {
           router.refresh();
         });
       }}
-      className="text-sm underline"
+      className="text-sm hover:text-primary"
     >
       Sair
     </button>

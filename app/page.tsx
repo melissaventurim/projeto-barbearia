@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
-import { SignOutButton } from "@/components/sign-out-button";
+import { SiteHeader } from "@/components/site-header";
+import { Button } from "@/components/ui/button";
 
 function formatPrice(priceInCents: number) {
   return (priceInCents / 100).toLocaleString("pt-BR", {
@@ -11,73 +11,44 @@ function formatPrice(priceInCents: number) {
 }
 
 export default async function HomePage() {
-  const [user, services] = await Promise.all([
-    getCurrentUser(),
-    prisma.service.findMany({
-      where: { active: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
-
-  const isStaff = user?.role === "ADMIN" || user?.role === "BARBER";
+  const services = await prisma.service.findMany({
+    where: { active: true },
+    orderBy: { name: "asc" },
+  });
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <header className="flex items-center justify-between gap-4 py-4">
-        <span className="text-lg font-bold">BladeApp</span>
+    <>
+      <SiteHeader />
 
-        <nav className="flex items-center gap-4 text-sm">
-          {user ? (
-            <>
-              <span className="opacity-70">{user.name}</span>
-              {isStaff && (
-                <Link href="/dashboard" className="underline">
-                  Minha área
-                </Link>
-              )}
-              <SignOutButton />
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="underline">
-                Entrar
-              </Link>
-              <Link href="/register" className="underline">
-                Criar conta
-              </Link>
-            </>
-          )}
-        </nav>
-      </header>
-
-      <main className="flex flex-col gap-8 py-8">
-        <section className="flex flex-col gap-3">
-          <h1 className="text-3xl font-bold">Agende seu horário</h1>
-          <p className="opacity-70">
+      <main className="mx-auto w-full max-w-3xl px-6 py-16">
+        <section className="flex flex-col items-start">
+          <h1 className="font-heading text-5xl leading-[1.05] tracking-tight sm:text-6xl">
+            Agende seu horário
+          </h1>
+          <p className="mt-5 max-w-lg text-muted-foreground">
             Escolha o serviço, o barbeiro e o horário. Não é preciso criar conta.
           </p>
-          <Link
-            href="/agendar"
-            className="w-fit rounded bg-blue-600 px-4 py-2 text-white"
-          >
-            Agendar
-          </Link>
+          <Button asChild size="lg" className="mt-8 px-8">
+            <Link href="/agendar">Agendar</Link>
+          </Button>
         </section>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-xl font-bold">Serviços</h2>
+        <section className="mt-20">
+          <h2 className="font-heading text-2xl tracking-tight">Serviços</h2>
 
           {services.length === 0 ? (
-            <p className="opacity-70">Nenhum serviço disponível no momento.</p>
+            <p className="mt-6 text-muted-foreground">
+              Nenhum serviço disponível no momento.
+            </p>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="mt-6 border-t border-border">
               {services.map((service) => (
                 <li
                   key={service.id}
-                  className="flex items-center justify-between rounded border border-gray-700 p-3"
+                  className="flex items-baseline justify-between gap-4 border-b border-border py-4"
                 >
                   <span>{service.name}</span>
-                  <span className="text-sm opacity-70">
+                  <span className="text-sm text-muted-foreground">
                     {formatPrice(service.priceInCents)} · {service.durationInMin} min
                   </span>
                 </li>
@@ -86,6 +57,6 @@ export default async function HomePage() {
           )}
         </section>
       </main>
-    </div>
+    </>
   );
 }
