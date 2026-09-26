@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { getActiveServices } from "@/lib/services";
+import { getCurrentUser } from "@/lib/session";
 
 function formatPrice(priceInCents: number) {
   return (priceInCents / 100).toLocaleString("pt-BR", {
@@ -11,7 +12,9 @@ function formatPrice(priceInCents: number) {
 }
 
 export default async function HomePage() {
+  const user = await getCurrentUser();
   const services = await getActiveServices();
+  const bookingHref = user ? "/booking" : "/login?redirect=/booking";
 
   return (
     <>
@@ -26,7 +29,7 @@ export default async function HomePage() {
             Escolha o serviço, o barbeiro e o horário. Sem enrolação!
           </p>
           <Button asChild size="lg" className="mt-8 px-8">
-            <Link href="/agendar">Agendar</Link>
+            <Link href={bookingHref}>Agendar</Link>
           </Button>
         </section>
 
