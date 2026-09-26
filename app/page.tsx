@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
+import { getActiveServices } from "@/lib/services";
 
 function formatPrice(priceInCents: number) {
   return (priceInCents / 100).toLocaleString("pt-BR", {
@@ -11,10 +11,7 @@ function formatPrice(priceInCents: number) {
 }
 
 export default async function HomePage() {
-  const services = await prisma.service.findMany({
-    where: { active: true },
-    orderBy: { name: "asc" },
-  });
+  const services = await getActiveServices();
 
   return (
     <>
@@ -26,7 +23,7 @@ export default async function HomePage() {
             Agende seu horário
           </h1>
           <p className="mt-5 max-w-lg text-muted-foreground">
-            Escolha o serviço, o barbeiro e o horário. Não é preciso criar conta.
+            Escolha o serviço, o barbeiro e o horário. Sem enrolação!
           </p>
           <Button asChild size="lg" className="mt-8 px-8">
             <Link href="/agendar">Agendar</Link>
@@ -42,7 +39,7 @@ export default async function HomePage() {
             </p>
           ) : (
             <ul className="mt-6 border-t border-border">
-              {services.map((service) => (
+              {services.map((service: { id: string; name: string; priceInCents: number; durationInMin: number }) => (
                 <li
                   key={service.id}
                   className="flex items-baseline justify-between gap-4 border-b border-border py-4"
