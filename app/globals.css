@@ -128,3 +128,16 @@
     @apply font-sans;
   }
 }
+
+@keyframes booking-success-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.booking-success-progress {
+  animation: booking-success-progress 3s linear forwards;
+}

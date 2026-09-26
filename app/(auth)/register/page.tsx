@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,8 @@ import {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? "/";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -36,7 +39,8 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/");
+    const destination = redirectTo.startsWith("/") ? redirectTo : "/";
+    router.push(destination);
     router.refresh();
   }
 
@@ -108,6 +112,13 @@ export default function RegisterPage() {
             <Button type="submit" disabled={loading}>
               {loading ? "Criando..." : "Criar conta"}
             </Button>
+
+            <p className="text-center text-sm text-muted-foreground">
+              Já tem uma conta?{" "}
+              <Link href={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary underline-offset-4 hover:underline">
+                Entrar
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>
