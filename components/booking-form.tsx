@@ -48,8 +48,7 @@ const TIME_SLOTS = [
   "19:00",
   "19:30",
   "20:00",
-  "20:30",
-  "21:00"
+  "20:30"
 ];
 
 function addDays(date: Date, days: number) {
