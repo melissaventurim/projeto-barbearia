@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, Check, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,6 +27,28 @@ type Barber = {
   role: string;
   active: boolean;
 };
+
+const TIME_SLOTS = [
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00"
+];
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -54,6 +78,7 @@ export function BookingForm({
   services: Service[];
   userName: string;
 }) {
+  const router = useRouter();
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>(services[0]?.id ?? "");
   const [selectedBarberId, setSelectedBarberId] = useState<string>("");
@@ -76,6 +101,13 @@ export function BookingForm({
   const availableDates = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => addDays(new Date(), index + 1));
   }, []);
+
+  useEffect(() => {
+    if (!success) return;
+
+    const redirectTimeout = window.setTimeout(() => router.push("/"), 3000);
+    return () => window.clearTimeout(redirectTimeout);
+  }, [router, success]);
 
   useEffect(() => {
     async function loadBarbers() {
@@ -309,21 +341,29 @@ export function BookingForm({
             <h2 className="font-heading text-xl tracking-tight">Horário</h2>
             {isLoadingSlots ? (
               <p className="text-sm text-muted-foreground">Buscando horários disponíveis...</p>
-            ) : availableSlots.length > 0 ? (
+            ) : (
               <div className="grid gap-3 sm:grid-cols-4">
-                {availableSlots.map((slot) => {
-                  const isSelected = selectedSlot === slot;
+                {TIME_SLOTS.map((slot) => {
+                  const isAvailable = availableSlots.includes(slot);
+                  const isSelected = selectedSlot === slot && isAvailable;
 
                   return (
                     <button
                       key={slot}
                       type="button"
-                      onClick={() => setSelectedSlot(slot)}
+                      disabled={!isAvailable}
+                      onClick={() => {
+                        if (isAvailable) {
+                          setSelectedSlot(slot);
+                        }
+                      }}
                       className={[
                         "rounded-xl border p-3 transition-colors",
-                        isSelected
-                          ? "border-primary bg-primary/10"
-                          : "border-border bg-card hover:border-primary/60",
+                        isAvailable
+                          ? isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-border bg-card hover:border-primary/60"
+                          : "border-border bg-muted/30 text-muted-foreground opacity-40 grayscale",
                       ].join(" ")}
                     >
                       {slot}
@@ -331,10 +371,6 @@ export function BookingForm({
                   );
                 })}
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Nenhum horário disponível para este dia e barbeiro.
-              </p>
             )}
           </div>
         </CardContent>
@@ -379,8 +415,6 @@ export function BookingForm({
               </div>
 
               {error && <p className="text-sm text-destructive">{error}</p>}
-              {success && <p className="text-sm text-primary">{success}</p>}
-
               <Button className="w-full" onClick={() => void handleSubmit()} disabled={isSubmitting}>
                 {isSubmitting ? "Confirmando..." : "Confirmar agendamento"}
               </Button>
@@ -390,6 +424,60 @@ export function BookingForm({
           )}
         </CardContent>
       </Card>
+
+      {success && summary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <section
+            aria-labelledby="booking-success-title"
+            aria-modal="true"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+            role="dialog"
+          >
+            <div className="h-1.5 bg-primary" />
+            <div className="p-7 text-center sm:p-8">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+                <Check aria-hidden="true" className="size-8" strokeWidth={2.5} />
+              </div>
+              <p className="mt-5 text-sm font-medium text-primary">Agendamento realizado</p>
+              <h2
+                className="mt-2 font-heading text-2xl tracking-tight"
+                id="booking-success-title"
+              >
+                Tudo certo, {userName}!
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Seu horário foi confirmado. Estamos esperando por você.
+              </p>
+
+              <div className="mt-6 space-y-3 rounded-xl border border-border bg-muted/30 p-4 text-left">
+                <p className="font-medium">{summary.service.name}</p>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CalendarDays aria-hidden="true" className="size-4 text-primary" />
+                  <span>{summary.date}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock3 aria-hidden="true" className="size-4 text-primary" />
+                  <span>{summary.time} · {summary.barber?.name}</span>
+                </div>
+              </div>
+
+              <div
+                aria-label="Redirecionando para o início em 3 segundos"
+                aria-valuemax={100}
+                aria-valuemin={0}
+                aria-valuenow={0}
+                className="mt-6 h-2 overflow-hidden rounded-full bg-muted"
+                role="progressbar"
+              >
+                <div className="booking-success-progress h-full rounded-full bg-primary" />
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Você será redirecionado para o início em instantes.
+              </p>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
