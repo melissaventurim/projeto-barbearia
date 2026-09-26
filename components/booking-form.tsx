@@ -47,13 +47,22 @@ const TIME_SLOTS = [
   "18:30",
   "19:00",
   "19:30",
-  "20:00"
+  "20:00",
+  "20:30",
+  "21:00"
 ];
 
 function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function formatDateInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function formatDateLabel(date: Date) {
@@ -82,9 +91,7 @@ export function BookingForm({
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>(services[0]?.id ?? "");
   const [selectedBarberId, setSelectedBarberId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>(
-    addDays(new Date(), 1).toISOString().slice(0, 10),
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(formatDateInput(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingBarbers, setIsLoadingBarbers] = useState(true);
@@ -99,7 +106,7 @@ export function BookingForm({
   );
 
   const availableDates = useMemo(() => {
-    return Array.from({ length: 7 }, (_, index) => addDays(new Date(), index + 1));
+    return Array.from({ length: 7 }, (_, index) => addDays(new Date(), index));
   }, []);
 
   useEffect(() => {
@@ -277,7 +284,7 @@ export function BookingForm({
             <h2 className="font-heading text-xl tracking-tight">Dia</h2>
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {availableDates.map((date) => {
-                const isoDate = date.toISOString().slice(0, 10);
+                const isoDate = formatDateInput(date);
                 const isSelected = selectedDate === isoDate;
 
                 return (

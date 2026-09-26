@@ -2,6 +2,9 @@ import crypto from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
+const OPENING_TIME = "10:00";
+const CLOSING_TIME = "21:00";
+
 export async function getActiveBarbers() {
   return prisma.user.findMany({
     where: {
@@ -52,8 +55,8 @@ export async function getBarberAvailability({
   const startOfDay = new Date(`${date}T00:00:00`);
   const endOfDay = new Date(`${date}T23:59:59.999`);
 
-  const defaultSlotStart = 9 * 60;
-  const defaultSlotEnd = 18 * 60;
+  const openingAt = toDateTime(date, OPENING_TIME);
+  const closingAt = toDateTime(date, CLOSING_TIME);
 
   const bookings = await prisma.booking.findMany({
     where: {
@@ -81,15 +84,18 @@ export async function getBarberAvailability({
   });
 
   const candidateWindows = availabilityBlocks.length > 0 ? availabilityBlocks : [{
-    startsAt: new Date(`${date}T${String(defaultSlotStart / 60).padStart(2, "0")}:00:00`),
-    endsAt: new Date(`${date}T${String(defaultSlotEnd / 60).padStart(2, "0")}:00:00`),
+    startsAt: openingAt,
+    endsAt: closingAt,
   }];
 
   const slots: string[] = [];
+  const now = new Date();
 
   for (const block of candidateWindows) {
-    const blockStart = new Date(block.startsAt);
-    const blockEnd = new Date(block.endsAt);
+    const blockStart = new Date(Math.max(block.startsAt.getTime(), openingAt.getTime()));
+    const blockEnd = new Date(Math.min(block.endsAt.getTime(), closingAt.getTime()));
+    if (blockStart >= blockEnd) continue;
+
     const stepStart = new Date(blockStart);
 
     while (stepStart.getTime() + serviceDurationMinutes * 60 * 1000 <= blockEnd.getTime()) {
@@ -99,7 +105,7 @@ export async function getBarberAvailability({
         overlaps(stepStart, stepEnd, booking.startsAt, booking.endsAt),
       );
 
-      if (!hasBookingConflict) {
+      if (stepStart > now && !hasBookingConflict) {
         const formatted = `${String(stepStart.getHours()).padStart(2, "0")}:${String(stepStart.getMinutes()).padStart(2, "0")}`;
         slots.push(formatted);
       }
@@ -166,6 +172,17 @@ export async function createBooking({
 
   const startsAt = toDateTime(date, time);
   const endsAt = addMinutes(startsAt, service.durationInMin);
+  const openingAt = toDateTime(date, OPENING_TIME);
+  const closingAt = toDateTime(date, CLOSING_TIME);
+
+  if (
+    Number.isNaN(startsAt.getTime()) ||
+    startsAt < openingAt ||
+    endsAt > closingAt ||
+    startsAt <= new Date()
+  ) {
+    throw new Error("Horário inválido: o agendamento deve ocorrer entre 10h e 21h.");
+  }
 
   const bookingConflict = await prisma.booking.findFirst({
     where: {
