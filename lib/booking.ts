@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { formatShopTime, shopTimeToUtc } from "@/lib/timezone";
 
 const OPENING_TIME = "10:00";
 const CLOSING_TIME = "21:00";
@@ -24,10 +24,7 @@ export async function getActiveBarbers() {
 }
 
 function toDateTime(date: string, time: string) {
-  const [year, month, day] = date.split("-").map(Number);
-  const [hours, minutes] = time.split(":").map(Number);
-
-  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+  return shopTimeToUtc(date, time);
 }
 
 function addMinutes(date: Date, minutes: number) {
@@ -52,8 +49,8 @@ export async function getBarberAvailability({
   date: string;
   serviceDurationMinutes: number;
 }) {
-  const startOfDay = new Date(`${date}T00:00:00`);
-  const endOfDay = new Date(`${date}T23:59:59.999`);
+  const startOfDay = shopTimeToUtc(date, "00:00");
+  const endOfDay = shopTimeToUtc(date, "23:59");
 
   const openingAt = toDateTime(date, OPENING_TIME);
   const closingAt = toDateTime(date, CLOSING_TIME);
@@ -101,13 +98,12 @@ export async function getBarberAvailability({
     while (stepStart.getTime() + serviceDurationMinutes * 60 * 1000 <= blockEnd.getTime()) {
       const stepEnd = addMinutes(stepStart, serviceDurationMinutes);
 
-      const hasBookingConflict = bookings.some((booking: any) =>
+      const hasBookingConflict = bookings.some((booking) =>
         overlaps(stepStart, stepEnd, booking.startsAt, booking.endsAt),
       );
 
       if (stepStart > now && !hasBookingConflict) {
-        const formatted = `${String(stepStart.getHours()).padStart(2, "0")}:${String(stepStart.getMinutes()).padStart(2, "0")}`;
-        slots.push(formatted);
+        slots.push(formatShopTime(stepStart));
       }
 
       stepStart.setMinutes(stepStart.getMinutes() + 30);

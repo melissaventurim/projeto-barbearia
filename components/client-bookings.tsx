@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SHOP_TIME_ZONE } from "@/lib/timezone";
 import {
   Card,
   CardContent,
@@ -42,7 +43,7 @@ function formatPrice(priceInCents: number) {
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR", {
-    timeZone: "UTC",
+    timeZone: SHOP_TIME_ZONE,
   });
 }
 
@@ -50,7 +51,7 @@ function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "UTC",
+    timeZone: SHOP_TIME_ZONE,
   });
 }
 
