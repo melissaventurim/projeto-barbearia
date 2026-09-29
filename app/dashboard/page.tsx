@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link href="/dashboard/meus-dados">Acessar meus dados</Link>
+                <Link href="/dashboard/profile">Acessar meus dados</Link>
               </Button>
             </CardContent>
           </Card>
@@ -52,7 +52,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link href="/dashboard/meus-agendamentos">
+                <Link href="/dashboard/bookings">
                   Ver agendamentos
                 </Link>
               </Button>
