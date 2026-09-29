@@ -4,11 +4,10 @@ import { SignOutButton } from "@/components/sign-out-button";
 
 export async function SiteHeader() {
   const user = await getCurrentUser();
-  const isStaff = user?.role === "ADMIN" || user?.role === "BARBER";
 
   return (
     <header className="border-b border-border">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-6 py-5">
+      <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-6 py-5">
         <Link href="/" className="font-heading text-xl tracking-tight">
           BladeApp
         </Link>
@@ -17,11 +16,9 @@ export async function SiteHeader() {
           {user ? (
             <>
               <span className="text-muted-foreground">{user.name}</span>
-              {isStaff && (
-                <Link href="/dashboard" className="hover:text-primary">
-                  Minha área
-                </Link>
-              )}
+              <Link href="/dashboard" className="hover:text-primary">
+                Minha área
+              </Link>
               <SignOutButton />
             </>
           ) : (
