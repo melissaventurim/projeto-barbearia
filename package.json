@@ -1,5 +1,6 @@
 {
   "name": "bladeapp",
+  "description": "Sistema web de agendamento para barbearia",
   "version": "0.1.0",
   "private": true,
   "scripts": {
