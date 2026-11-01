@@ -6,3 +6,7 @@
 - Gustavo Machado Resende - RA: 10728414
 - Melissa de Souza Venturim Pacheco - RA: 10740141
 - Natan Motta Valladão - RA: 10728863
+
+- ## Sobre o projeto
+
+O BladeApp é um sistema web desenvolvido para facilitar o agendamento de serviços em barbearias.
