@@ -107,7 +107,7 @@ export function ServicesManager() {
     setEditingId(service.id);
     setForm({
       name: service.name,
-      price: (service.priceInCents / 100).toFixed(2),
+      price: (service.priceInCents / 100).toFixed(2).replace(".", ","),
       durationInMin: String(service.durationInMin),
     });
     setMessage("");
@@ -271,7 +271,7 @@ export function ServicesManager() {
                 <div>
                   <p className="font-medium">{service.name}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    R$ {(service.priceInCents / 100).toFixed(2)} ·{" "}
+                    {(service.priceInCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} ·{" "}
                     {service.durationInMin} minutos
                   </p>
                   <p
