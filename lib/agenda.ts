@@ -65,3 +65,36 @@ export async function cancelBookingAsAdmin(bookingId: unknown) {
 
   throw new AppError("Não é possível cancelar um agendamento que já começou.");
 }
+
+export async function completeBooking(bookingId: unknown, barberId: string) {
+  if (typeof bookingId !== "string" || !bookingId) {
+    throw new AppError("Atendimento inválido.");
+  }
+
+  const result = await prisma.booking.updateMany({
+    where: {
+      id: bookingId,
+      barberId,
+      status: "CONFIRMED",
+      startsAt: { lte: new Date() },
+    },
+    data: { status: "COMPLETED" },
+  });
+
+  if (result.count === 1) return;
+
+  const booking = await prisma.booking.findFirst({
+    where: { id: bookingId, barberId },
+    select: { status: true },
+  });
+
+  if (!booking) {
+    throw new AppError("Atendimento não encontrado.", 404);
+  }
+
+  if (booking.status !== "CONFIRMED") {
+    throw new AppError("Este atendimento não pode mais ser alterado.");
+  }
+
+  throw new AppError("O atendimento ainda não começou.");
+}

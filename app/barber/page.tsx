@@ -1,11 +1,9 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/session";
+import { BarberSchedule } from "@/components/barber-schedule";
 import { SiteHeader } from "@/components/site-header";
+import { requireRole } from "@/lib/session";
 
 export default async function BarberPage() {
-  const user = await getCurrentUser();
-
-  if (user?.role !== "BARBER") redirect("/login");
+  await requireRole("BARBER");
 
   return (
     <>
@@ -16,8 +14,10 @@ export default async function BarberPage() {
           Agenda do barbeiro
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Acompanhe os atendimentos do dia e confirme os já realizados.
+          Acompanhe seus atendimentos e conclua os que já foram realizados.
         </p>
+
+        <BarberSchedule />
       </main>
     </>
   );

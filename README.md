@@ -50,8 +50,6 @@ O sistema contempla os seguintes recursos:
 - Consulta da própria agenda.
 - Marcação de atendimentos como concluídos.
 
-*Observação: algumas funcionalidades ainda estão em desenvolvimento.*
-
 ## Requisitos para execução
 
 Antes de iniciar, é necessário ter instalado:
