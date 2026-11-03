@@ -18,4 +18,19 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7,
   },
+  databaseHooks: {
+    session: {
+      create: {
+        // Deactivated accounts cannot start new sessions.
+        before: async (session) => {
+          const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { active: true },
+          });
+
+          if (!user?.active) return false;
+        },
+      },
+    },
+  },
 });
