@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
+import { AdminBookings } from "@/components/admin/admin-bookings";
 import { requireRole } from "@/lib/session";
 
-export default async function AdminPage() {
+export default async function AdminAgendaPage() {
   await requireRole("ADMIN");
 
-  redirect("/admin/services");
+  return <AdminBookings />;
 }
