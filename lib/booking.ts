@@ -1,9 +1,8 @@
 import crypto from "node:crypto";
+import { bookingsFitPeriods } from "@/lib/availability";
+import { CLOSING_TIME, OPENING_TIME } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 import { formatShopTime, shopTimeToUtc } from "@/lib/timezone";
-
-const OPENING_TIME = "10:00";
-const CLOSING_TIME = "21:00";
 
 export async function getActiveBarbers() {
   return prisma.user.findMany({
@@ -178,6 +177,24 @@ export async function createBooking({
     startsAt <= new Date()
   ) {
     throw new Error("Horário inválido: o agendamento deve ocorrer entre 10h e 21h.");
+  }
+
+  // When the admin set working periods for the day, the booking must fit in
+  // them; without periods the barber works the whole opening hours.
+  const periods = await prisma.availability.findMany({
+    where: {
+      barberId,
+      startsAt: { lt: closingAt },
+      endsAt: { gt: openingAt },
+    },
+    select: { startsAt: true, endsAt: true },
+  });
+
+  if (
+    periods.length > 0 &&
+    !bookingsFitPeriods([{ startsAt, endsAt }], periods)
+  ) {
+    throw new Error("Horário inválido: fora do período de atendimento do barbeiro.");
   }
 
   const bookingConflict = await prisma.booking.findFirst({
